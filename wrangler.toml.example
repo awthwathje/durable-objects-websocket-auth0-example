@@ -1,0 +1,33 @@
+name = "cloudlist-worker"   # pick your own name
+
+type = "javascript"         # type = "javascript" is required to use the `[build]` section
+
+workers_dev = false         # workers_dev = true if you are using a custom domain name
+
+account_id = "XXXXXXXXXXX"  # your Cloudflare account ID goes here
+zone_id = "XXXXXXXXXXX"     # ...and zone ID from the same page
+
+# example! find your own values on your Auth0 app's page
+vars = { AUTH0_ISSUER_BASE_URL = "cloudlist.eu.auth0.com", AUTH0_CLIENT_ID = "XXX", AUTH0_CLIENT_SECRET = "XXX", AUTH0_CALLBACK_URL = "https://cloudlist.app/api/auth/callback" }
+
+# these are the rules for routing trafic to our Workers (bypassing Next.js front-end). fill in your own domain
+routes = [
+    "cloudlist.app/api/auth/*",
+    "cloudlist.app/api/websocket"
+]
+
+# use `wrangler kv:namespace create AUTH_STORE` command to generate this section
+kv_namespaces = [
+    { binding = "AUTH_STORE", id = "XXX", preview_id = "XXX" }
+]
+
+[build]
+command = "yarn && yarn build:workers"
+
+[build.upload]
+# the "modules" upload format is required for all projects that export a Durable Object class
+format = "modules"
+main = "./shim.mjs"
+
+[durable_objects]
+bindings = [{ name = "LIST", class_name = "List" }]
